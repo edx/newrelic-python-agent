@@ -283,6 +283,12 @@ class AgentProtocol(object):
     }
 
     def __init__(self, settings, host=None, client_cls=ApplicationModeClient):
+        try:
+            from django.conf import settings as django_settings
+            self._no_report = bool(getattr(django_settings, "EDX_NEWRELIC_NO_REPORT", False))
+        except ImportError:
+            self._no_report = False
+
         if settings.audit_log_file:
             audit_log_fp = open(settings.audit_log_file, "a")
         else:
@@ -350,12 +356,13 @@ class AgentProtocol(object):
         payload=(),
         path="/agent_listener/invoke_raw_method",
     ):
-        if method in FAKE_AGENT_RESPONSE:
-            return FAKE_AGENT_RESPONSE[method]
-        else:
-            _logger.warning(f"NR agent wanted to send unrecognized {method=} -- denied, and will ignore future instances.")
-            FAKE_AGENT_RESPONSE[method] = {}
-            return {}
+        if self._no_report:
+            if method in FAKE_AGENT_RESPONSE:
+                return FAKE_AGENT_RESPONSE[method]
+            else:
+                _logger.warning(f"NR agent wanted to send unrecognized {method=} -- denied, and will ignore future instances.")
+                FAKE_AGENT_RESPONSE[method] = {}
+                return {}
 
         params, headers, payload = self._to_http(method, payload)
 
