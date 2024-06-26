@@ -155,10 +155,23 @@ FAKE_AGENT_RESPONSE = {
 }
 """),
     'agent_settings': None,
-    'analytic_event_data': None,
+
+    # From data_collector.py
+    'agent_command_results': {},
+    'analytic_event_data': {},
+    'custom_event_data': {},
+    'dimensional_metric_data': {},
+    'error_data': {},
+    'error_event_data': {},
+    'get_agent_commands': {},
+    'log_event_data': {},
+    'metric_data': {},
+    'ml_event_data': {},
+    'profile_data': {},
+    'shutdown': {},
     'span_event_data': {},
-    'metric_data': None,
-    # Don't bother adding more... there are a bunch.
+    'sql_trace_data': {},
+    'transaction_sample_data': {},
 }
 
 
