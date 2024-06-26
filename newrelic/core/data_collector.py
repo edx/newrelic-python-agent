@@ -43,14 +43,12 @@ class Session(object):
     CLIENT = ApplicationModeClient
 
     def __init__(self, app_name, linked_applications, environment, settings):
-        #print(f"Connecting Session {self.PROTOCOL=}")
         self._protocol = self.PROTOCOL.connect(
             app_name, linked_applications, environment, settings, client_cls=self.CLIENT
         )
         self._otlp_protocol = self.OTLP_PROTOCOL.connect(
             app_name, linked_applications, environment, settings, client_cls=self.CLIENT
         )
-        #print("Session connected")
         self._rpc = None
 
     @property

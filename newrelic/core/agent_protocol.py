@@ -373,7 +373,6 @@ class AgentProtocol(object):
             raise RetryDataForRequest
 
         status, data = response
-        #print(f"🔍🔍🔍 Agent got response {status=} {data.decode()=}")
 
         if not 200 <= status < 300:
             if status == 413:
