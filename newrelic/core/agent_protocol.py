@@ -157,6 +157,8 @@ FAKE_AGENT_RESPONSE = {
     'agent_settings': None,
     'analytic_event_data': None,
     'span_event_data': {},
+    'metric_data': None,
+    # Don't bother adding more... there are a bunch.
 }
 
 
@@ -338,7 +340,9 @@ class AgentProtocol(object):
         if method in FAKE_AGENT_RESPONSE:
             return FAKE_AGENT_RESPONSE[method]
         else:
-            _logger.warning(f"NR agent wanted to send unrecognized {method=} (denied)")
+            _logger.warning(f"NR agent wanted to send unrecognized {method=} -- denied, and will ignore future instances.")
+            FAKE_AGENT_RESPONSE[method] = {}
+            return {}
 
         params, headers, payload = self._to_http(method, payload)
 
