@@ -496,6 +496,8 @@ class Application(object):
 
         configuration = active_session.configuration
 
+        #print("NR configuration received")
+
         with self._stats_lock:
             self._stats_engine.reset_stats(configuration, reset_stream=True)
 

@@ -50,6 +50,116 @@ from newrelic.network.exceptions import (
 _logger = logging.getLogger(__name__)
 
 
+# {return_value: ...} wrapper has been removed from each of these
+FAKE_AGENT_RESPONSE = {
+    'preconnect': {"redirect_host": "collector.newrelic.com"},
+    'connect': json_decode(r"""
+{
+    "agent_run_id": "xxx1",
+    "data_report_period": 60,
+    "application_id": "xxx10",
+    "browser_key": "xxx2",
+    "beacon": "bam.nr-data.net",
+    "apdex_t": 0.5,
+    "url_rules": [
+      {
+        "ignore": false,
+        "match_expression": ".*\\.(ace|arj|ini|txt|udl|plist|css|gif|ico|jpe?g|js|png|swf|woff|caf|aiff|m4v|mpe?g|mp3|mp4|mov)$",
+        "replacement": "/*.\\1",
+        "eval_order": 1000,
+        "terminate_chain": true,
+        "replace_all": false,
+        "each_segment": false
+      },
+      {
+        "ignore": false,
+        "match_expression": "^[0-9][0-9a-f_,.-]*$",
+        "replacement": "*",
+        "eval_order": 1001,
+        "terminate_chain": false,
+        "replace_all": false,
+        "each_segment": true
+      },
+      {
+        "ignore": false,
+        "match_expression": "^(.*)/[0-9][0-9a-f_,-]*\\.([0-9a-z][0-9a-z]*)$",
+        "replacement": "\\1/.*\\2",
+        "eval_order": 1002,
+        "terminate_chain": false,
+        "replace_all": false,
+        "each_segment": false
+      }
+    ],
+    "data_methods": {
+      "error_event_data": {
+        "report_period_in_seconds": 60,
+        "max_samples_stored": 10000
+      },
+      "span_event_data": {
+        "report_period_in_seconds": 60,
+        "max_samples_stored": 10000
+      },
+      "custom_event_data": {
+        "report_period_in_seconds": 60,
+        "max_samples_stored": 10000
+      },
+      "analytic_event_data": {
+        "report_period_in_seconds": 60,
+        "max_samples_stored": 10000
+      }
+    },
+    "event_harvest_config": {
+      "report_period_ms": 5000,
+      "harvest_limits": {
+        "error_event_data": 8,
+        "log_event_data": 0,
+        "analytic_event_data": 100,
+        "custom_event_data": 300
+      }
+    },
+    "span_event_harvest_config": {
+      "report_period_ms": 60000,
+      "harvest_limit": 2000
+    },
+    "transaction_naming_scheme": "legacy",
+    "product_level": 0,
+    "max_payload_size_in_bytes": 1000000,
+    "sampling_rate": 0,
+    "entity_guid": "xxx3",
+    "collect_error_events": true,
+    "collect_analytics_events": true,
+    "collect_span_events": true,
+    "collect_errors": true,
+    "collect_traces": true,
+    "sampling_target_period_in_seconds": 60,
+    "sampling_target": 10,
+    "primary_application_id": "xxx6",
+    "account_id": "xxx7",
+    "messages": [],
+    "cross_process_id": "xxx4",
+    "encoding_key": "xxx5",
+    "trusted_account_ids": [],
+    "trusted_account_key": "xxx8",
+    "request_headers_map": {},
+    "browser_monitoring.distributed_tracing.enabled": true,
+    "js_agent_file": "",
+    "episodes_url": "https://js-agent.newrelic.com/nr-100.js",
+    "error_beacon": "bam.nr-data.net",
+    "browser_monitoring.loader_version": "1.260.1",
+    "browser_monitoring.loader": "spa",
+    "js_agent_loader_version": "bogus-loader-sorry",
+    "feature_flags": [],
+    "episodes_file": "js-agent.newrelic.com/nr-100.js",
+    "browser_monitoring.privacy.cookies_enabled": true,
+    "js_agent_loader": "xxx9"
+}
+"""),
+    'agent_settings': None,
+    'analytic_event_data': None,
+    'span_event_data': {},
+}
+
+
 class AgentProtocol(object):
     VERSION = 17
 
@@ -225,6 +335,11 @@ class AgentProtocol(object):
         payload=(),
         path="/agent_listener/invoke_raw_method",
     ):
+        if method in FAKE_AGENT_RESPONSE:
+            return FAKE_AGENT_RESPONSE[method]
+        else:
+            _logger.warning(f"NR agent wanted to send unrecognized {method=} (denied)")
+
         params, headers, payload = self._to_http(method, payload)
 
         try:
@@ -234,6 +349,7 @@ class AgentProtocol(object):
             raise RetryDataForRequest
 
         status, data = response
+        #print(f"🔍🔍🔍 Agent got response {status=} {data.decode()=}")
 
         if not 200 <= status < 300:
             if status == 413:
