@@ -283,6 +283,20 @@ class AgentProtocol(object):
     }
 
     def __init__(self, settings, host=None, client_cls=ApplicationModeClient):
+        # .. toggle_name: EDX_NEWRELIC_NO_REPORT
+        # .. toggle_implementation: DjangoSetting
+        # .. toggle_default: False
+        # .. toggle_description: Prevent agent from talking to New Relic (but preserve
+        #   instrumentation).
+        #
+        #   If the setting is present and enabled, the agent will not talk to New Relic's
+        #   servers and will instead use a set of previously captured responses from our
+        #   sandbox account. Instrumentation (tracing, etc.) will still be in place, but
+        #   the data will be discarded rather than being reported.
+        # .. toggle_use_cases: temporary
+        # .. toggle_creation_date: 2024-06-26
+        # .. toggle_target_removal_date: 2024-09-01
+        # .. toggle_tickets: https://github.com/edx/edx-arch-experiments/issues/692
         try:
             from django.conf import settings as django_settings
             self._no_report = bool(getattr(django_settings, "EDX_NEWRELIC_NO_REPORT", False))
