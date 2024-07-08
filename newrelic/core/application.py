@@ -280,6 +280,29 @@ class Application(object):
         data collector if no current active session.
 
         """
+        # .. toggle_name: EDX_NEWRELIC_DISABLE
+        # .. toggle_implementation: DjangoSetting
+        # .. toggle_default: False
+        # .. toggle_description: Prevent agent from fully activating. This will simulate
+        #   a situation where there's a bad or missing license key, and should effectively
+        #   disable New Relic tracing. (This could also be accomplished by removing the
+        #   newrelic wrapper from server startup, but that requires a much longer lead time
+        #   to deploy.)
+        # .. toggle_use_cases: temporary
+        # .. toggle_creation_date: 2024-07-08
+        # .. toggle_target_removal_date: 2024-09-01
+        # .. toggle_tickets: https://github.com/edx/edx-arch-experiments/issues/692
+        try:
+            from django.conf import settings as django_settings
+            disable_nr = bool(getattr(django_settings, "EDX_NEWRELIC_DISABLE", False))
+            if disable_nr:
+                _logger.info("Disabling newrelic agent")
+                return
+            else:
+                _logger.info("Allowing newrelic agent to run")
+        except ImportError:
+            _logger.warn("Failed to import Django to check whether NR should be disabled; allowing it to run.")
+            pass
 
         if self._agent_shutdown:
             return
